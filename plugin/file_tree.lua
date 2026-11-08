@@ -1,0 +1,11 @@
+-- Entry point: registers the pane with defaults.
+--
+-- Custom config, instead of the default entry:
+--   maki.pack.add({
+--     { src = "https://github.com/ehalil2004/maki-files", data = { width = 50, toggle_key = "<C-b>" } },
+--   }, {
+--     load = function(package)
+--       require("file_tree").setup(package.spec.data)
+--     end,
+--   })
+require("file_tree").setup()

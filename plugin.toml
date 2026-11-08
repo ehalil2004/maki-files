@@ -1,0 +1,10 @@
+min_maki_version = "0.7.0"
+
+# Packages are granted only the keys listed here.
+#   fs_read      maki.fs.dir / maki.fs.metadata — listing directories
+#   fs_write     write / mkdir / rename / rm — file operations
+#   session_read maki.plan.read — refuses writes while the session is in plan mode
+[permissions]
+fs_read = true
+fs_write = true
+session_read = true
