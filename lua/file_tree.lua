@@ -441,7 +441,11 @@ end
 
 local function open_file(node)
   local code = maki.ui.open_editor(node.path)
-  if code ~= 0 then
+  if code == -1 then
+    -- open_editor answers -1 both for "no UI" and for "no editor": maki only
+    -- reads $VISUAL/$EDITOR, so an unset variable looks like a no-op.
+    failed("files: no editor set, put one in $EDITOR (e.g. code --wait)")
+  elseif code ~= 0 then
     flash("files: editor exited with " .. tostring(code))
   end
 end
