@@ -787,6 +787,17 @@ function M.setup(opts)
 
   maki.keymap.set({ "n", "i" }, M.toggle_key, toggle, { desc = "File tree" })
 
+  -- Bound directly rather than only claimed on the window: a claim that never
+  -- fires leaves a visible but deaf pane. The window keeps its claim too, so
+  -- either mechanism can deliver the key, and whichever fires consumes it.
+  for _, key in ipairs(NAV_KEYS) do
+    maki.keymap.set({ "n", "i" }, key, function()
+      if pane then
+        handle_key(pane, key)
+      end
+    end, { desc = "File tree" })
+  end
+
   maki.api.register_command({
     name = "/files",
     description = "Toggle the file tree pane (" .. close_key .. "); it never takes keyboard focus",

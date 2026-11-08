@@ -21,7 +21,7 @@ Alt-prefixed keys and mouse clicks.
 ```lua
 -- global init.lua
 maki.pack.add({
-  { src = "https://github.com/ehalil2004/maki-files", version = "v1.0.0" },
+  { src = "https://github.com/ehalil2004/maki-files", version = "v1.0.1" },
 })
 ```
 
@@ -68,7 +68,7 @@ To change them, install with a custom entry point:
 maki.pack.add({
   {
     src = "https://github.com/ehalil2004/maki-files",
-    version = "v1.0.0",
+    version = "v1.0.1",
     data = { width = 52, toggle_key = "<C-b>" },
   },
 }, {
