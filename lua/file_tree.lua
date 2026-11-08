@@ -6,7 +6,8 @@
 -- working while it is open. Navigation uses Alt-prefixed keys, the same
 -- approach as other side panes; clicks work too.
 --
--- Toggle with Alt-E or /files.
+-- Toggle with Alt-E or /files. Alt-l opens a file in $EDITOR, or through
+-- `open_cmd` when set (GUI editors without a blocking mode).
 -- Keys: Alt-j/Alt-k move, Alt-l expand or open, Alt-h collapse or go to the
 -- parent, Alt-a new file, Alt-n new directory, Alt-r rename, Alt-d delete,
 -- Alt-s hidden files, Alt-u refresh, Alt-i this list.
@@ -15,6 +16,10 @@ local M = {
   width = 40,
   toggle_key = "<M-e>",
   show_hidden = false,
+  -- Optional command that opens a file without suspending the TUI, for GUI
+  -- editors that have no blocking mode (`zed`, most Electron apps). Arguments
+  -- may be quoted; the path is appended last.
+  open_cmd = nil,
 }
 local FOOTER = { { "Alt-j/k", "move" }, { "Alt-l", "open" }, { "Alt-d", "del" } }
 
@@ -439,7 +444,46 @@ local function collapse(p, node)
   end
 end
 
+-- Splits an `open_cmd` into argv, honouring double quotes so a program path
+-- with spaces survives as one argument.
+local function split_cmd(cmd)
+  local out, cur, quoted = {}, {}, false
+  for i = 1, #cmd do
+    local c = cmd:sub(i, i)
+    if c == '"' then
+      quoted = not quoted
+    elseif (c == " " or c == "\t") and not quoted then
+      if #cur > 0 then
+        out[#out + 1] = table.concat(cur)
+        cur = {}
+      end
+    else
+      cur[#cur + 1] = c
+    end
+  end
+  if #cur > 0 then
+    out[#out + 1] = table.concat(cur)
+  end
+  return out
+end
+
 local function open_file(node)
+  local cmd = M.open_cmd
+  if cmd and cmd ~= "" then
+    local argv = split_cmd(cmd)
+    if #argv == 0 then
+      failed("files: open_cmd is empty")
+      return
+    end
+    argv[#argv + 1] = node.path
+    local id, err = maki.fn.jobstart(argv, { scope = "plugin", stdout = false, stderr = false })
+    if id then
+      return
+    end
+    -- Fall back to the blocking path rather than leaving the key dead.
+    failed("files: " .. tostring(err))
+  end
+
   local code = maki.ui.open_editor(node.path)
   if code == -1 then
     -- open_editor answers -1 both for "no UI" and for "no editor": maki only
@@ -778,6 +822,9 @@ function M.setup(opts)
   opts = opts or {}
   M.width = opts.width or M.width
   M.toggle_key = opts.toggle_key or M.toggle_key
+  if opts.open_cmd ~= nil then
+    M.open_cmd = opts.open_cmd
+  end
   if opts.show_hidden ~= nil then
     M.show_hidden = opts.show_hidden
   end

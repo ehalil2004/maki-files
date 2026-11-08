@@ -21,7 +21,7 @@ Alt-prefixed keys and mouse clicks.
 ```lua
 -- global init.lua
 maki.pack.add({
-  { src = "https://github.com/ehalil2004/maki-files", version = "v1.0.1" },
+  { src = "https://github.com/ehalil2004/maki-files", version = "v1.1.0" },
 })
 ```
 
@@ -56,8 +56,10 @@ Keys are deliberately chosen to avoid Maki's own `Alt+←/→` (word motion),
 | `fs_read` | `maki.fs.dir`, `maki.fs.metadata` — listing directories |
 | `fs_write` | `write`, `mkdir`, `rename`, `rm` — the file operations you trigger |
 | `session_read` | `maki.plan.read` — the pane refuses writes in plan mode |
+| `run` | `maki.fn.jobstart` — starts your GUI editor, only when `open_cmd` is set |
 
-No network, no shell, no agent calls.
+No network and no agent calls. `run` exists solely for the optional
+`open_cmd` launcher below; without it the pane never starts a process.
 
 ## Config
 
@@ -68,7 +70,7 @@ To change them, install with a custom entry point:
 maki.pack.add({
   {
     src = "https://github.com/ehalil2004/maki-files",
-    version = "v1.0.1",
+    version = "v1.1.0",
     data = { width = 52, toggle_key = "<C-b>" },
   },
 }, {
@@ -77,6 +79,36 @@ maki.pack.add({
   end,
 })
 ```
+
+### GUI editors
+
+`Alt-l` opens a file through `maki.ui.open_editor`, which reads `$VISUAL` or
+`$EDITOR` and **suspends the TUI** until the editor exits. That needs an editor
+that blocks: `notepad`, `nvim`, or `code --wait`.
+
+GUI apps without a blocking mode (`zed`, most Electron editors) return at once,
+so the TUI snaps back while the window opens. Point `open_cmd` at them instead:
+the file is opened by a background process and the TUI is never torn down.
+
+```lua
+maki.pack.add({
+  {
+    src = "https://github.com/ehalil2004/maki-files",
+    version = "v1.1.0",
+    data = {
+      open_cmd = '"C:\Users\you\AppData\Local\Programs\Zed\Zed.exe"',
+    },
+  },
+}, {
+  load = function(package)
+    require("file_tree").setup(package.spec.data)
+  end,
+})
+```
+
+Quotes are honoured, so a path with spaces stays one argument; the file path is
+appended last. If the command fails to start, the pane says so and falls back to
+`$EDITOR`.
 
 The module is also callable directly: `require("file_tree").setup{...}`,
 `.toggle()`, `.open()`, `.close()`, `.refresh()`.

@@ -4,7 +4,9 @@ min_maki_version = "0.7.0"
 #   fs_read      maki.fs.dir / maki.fs.metadata — listing directories
 #   fs_write     write / mkdir / rename / rm — file operations
 #   session_read maki.plan.read — refuses writes while the session is in plan mode
+#   run          maki.fn.jobstart — only for the optional `open_cmd` launcher
 [permissions]
 fs_read = true
 fs_write = true
 session_read = true
+run = true
